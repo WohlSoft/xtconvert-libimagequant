@@ -1,8 +1,6 @@
-message(DEPRECATION "The CMake build script of libimagequant is deprecated and unsupported. Please switch to Rust/Cargo https://lib.rs/crates/imagequant-sys")
+cmake_minimum_required(VERSION 3.5)
 
-cmake_minimum_required(VERSION 2.9)
-
-set(VERSION 2.18.0)
+set(VERSION 2.18.0-moondust)
 
 project(imagequant C)
 
@@ -12,32 +10,11 @@ else()
   option(BUILD_WITH_SSE "Use SSE" ON)
 endif()
 
-if(BUILD_WITH_SSE)
-  add_definitions(-DUSE_SSE=1)
-endif()
-
 find_package(OpenMP)
 if(OPENMP_FOUND)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
-
-include_directories(${CMAKE_SOURCE_DIR})
-
-if(CMAKE_COMPILER_IS_GNUCC)
-  add_compile_options("-std=c99")
-endif()
-
-add_library(imagequant SHARED 
-  libimagequant.c
-  blur.c
-  mediancut.c
-  mempool.c
-  nearest.c
-  pam.c
-  kmeans.c
-  remap.c
-)
 
 add_library(imagequant_a STATIC
   libimagequant.c
@@ -49,13 +26,14 @@ add_library(imagequant_a STATIC
   kmeans.c
   remap.c
 )
-set_target_properties(imagequant PROPERTIES SOVERSION 0
-  VERSION 0.0)
 
-set(PREFIX ${CMAKE_INSTALL_PREFIX})
-configure_file(imagequant.pc.in imagequant.pc @ONLY)
+if(BUILD_WITH_SSE)
+  target_compile_definitions(imagequant_a PRIVATE -DUSE_SSE=1)
+endif()
 
-install(TARGETS imagequant        LIBRARY           DESTINATION ${LIB_INSTALL_DIR})
-install(FILES                     libimagequant.h   DESTINATION include)
-install(FILES ${CMAKE_BINARY_DIR}/libimagequant_a.a DESTINATION ${LIB_INSTALL_DIR} RENAME libimagequant.a)
-install(FILES ${CMAKE_BINARY_DIR}/imagequant.pc     DESTINATION ${LIB_INSTALL_DIR}/pkgconfig)
+if(CMAKE_COMPILER_IS_GNUCC)
+  target_compile_options(imagequant_a PRIVATE "-std=c99")
+endif()
+
+target_include_directories(imagequant_a PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(imagequant_a PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
