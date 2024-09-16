@@ -12,8 +12,9 @@ endif()
 
 find_package(OpenMP)
 if(OPENMP_FOUND)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  option(BUILD_WITH_OPENMP "Use OpenMP" OFF)
+else()
+  set(BUILD_WITH_OPENMP OFF)
 endif()
 
 add_library(imagequant_a STATIC
@@ -29,6 +30,11 @@ add_library(imagequant_a STATIC
 
 if(BUILD_WITH_SSE)
   target_compile_definitions(imagequant_a PRIVATE -DUSE_SSE=1)
+endif()
+
+if(BUILD_WITH_OPENMP)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  target_link_libraries(imagequant_a PRIVATE ${OpenMP_C_LIBRARIES})
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
