@@ -28,6 +28,8 @@ add_library(imagequant_a STATIC
   remap.c
 )
 
+set_target_properties(imagequant_a PROPERTIES PUBLIC_HEADER "include/libimagequant.h")
+
 if(BUILD_WITH_SSE)
   target_compile_definitions(imagequant_a PRIVATE -DUSE_SSE=1)
 endif()
@@ -43,3 +45,8 @@ endif()
 
 target_include_directories(imagequant_a PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(imagequant_a PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+install(TARGETS imagequant_a
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
